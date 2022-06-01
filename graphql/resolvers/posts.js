@@ -1,18 +1,20 @@
 const Post = require("../../models/Post");
+const checkAuth = require("../../util/check-auth");
 
 module.exports = {
+  // QUERY
   Query: {
-    // All POST
+    //GET All POST
     async getPosts() {
       try {
-        const posts = await Post.find();
+        const posts = await Post.find().sort({ createdAt: -1 });
         return posts;
       } catch (err) {
         throw new Error(err);
       }
     },
 
-    // SINGLE POST BASED ON ID
+    // GET SINGLE POST BASED ON ID
     async getPost(_, { postId }) {
       try {
         const post = await Post.findById(postId);
@@ -25,6 +27,24 @@ module.exports = {
       } catch (err) {
         throw new Error(err);
       }
+    },
+  },
+  // MUTATION
+
+  Mutation: {
+    // CREATE POST
+    async createPost(_, { body }, context) {
+      const user = checkAuth(context);
+
+      const newPost = new Post({
+        body,
+        user: user.indexOf,
+        username: user.username,
+        createdAt: new Date().toISOString(),
+      });
+
+      const post = await newPost.save();
+      return post;
     },
   },
 };
